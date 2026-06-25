@@ -16,15 +16,14 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Build pinned clean-room package
+      - name: Install pinned Lean toolchain
         uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9
         with:
           lake-package-directory: formalizations/tms2-cleanroom
           auto-config: false
-          build: true
-          leanchecker: true
-          nanoda: true
-          nanoda-allow-sorry: false
+          build: false
+          leanchecker: false
+          nanoda: false
           use-github-cache: false
       - name: Record toolchain
         working-directory: formalizations/tms2-cleanroom
@@ -32,3 +31,32 @@ jobs:
           set -euo pipefail
           lean --version
           lake --version
+      - name: Build and retain diagnostics
+        id: build
+        working-directory: formalizations/tms2-cleanroom
+        shell: bash
+        run: |
+          set +e
+          lake update > build.log 2>&1
+          update_status=$?
+          if [ "$update_status" -eq 0 ]; then
+            lake build >> build.log 2>&1
+            build_status=$?
+          else
+            build_status=1
+          fi
+          status=$(( update_status != 0 || build_status != 0 ))
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          tail -n 300 build.log
+          exit 0
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tms2-cleanroom-build-log
+          path: formalizations/tms2-cleanroom/build.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail on build error
+        if: steps.build.outputs.status != '0'
+        run: exit 1
