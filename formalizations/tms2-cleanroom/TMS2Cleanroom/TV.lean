@@ -100,6 +100,21 @@ lemma tv_nonneg (p q : Dist α) : 0 ≤ tv p q := by
 lemma tv_self (p : Dist α) : tv p p = 0 := by
   simp [tv]
 
+lemma tv_eq_zero_iff (p q : Dist α) : tv p q = 0 ↔ p = q := by
+  constructor
+  · intro h
+    have hsum : ∑ a, |p a - q a| = 0 := by
+      unfold tv at h
+      nlinarith
+    have hall : ∀ a ∈ (Finset.univ : Finset α), |p a - q a| = 0 :=
+      (Finset.sum_eq_zero_iff_of_nonneg (fun a ha => abs_nonneg (p a - q a))).1 hsum
+    apply Dist.ext
+    intro a
+    have ha := hall a (Finset.mem_univ a)
+    exact sub_eq_zero.mp (abs_eq_zero.mp ha)
+  · rintro rfl
+    exact tv_self p
+
 lemma tv_symm (p q : Dist α) : tv p q = tv q p := by
   simp only [tv_eq_tvPos]
   exact tvPos_symm p q
