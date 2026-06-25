@@ -52,7 +52,8 @@ lemma pos_sum_le_sum_pos (s : Finset ι) (f : ι → ℝ) :
   | empty => simp [pos]
   | @insert a s ha ih =>
       simp only [Finset.sum_insert ha]
-      exact (pos_add_le (f a) (∑ i ∈ s, f i)).trans (add_le_add_left ih _)
+      exact (pos_add_le (f a) (∑ i ∈ s, f i)).trans
+        (add_le_add_left ih (pos (f a)))
 
 /-- Total variation as positive mass of the signed difference. -/
 def tvPos (p q : Dist α) : ℝ := ∑ a, pos (p a - q a)
@@ -74,7 +75,7 @@ lemma tvPos_symm (p q : Dist α) : tvPos p q = tvPos q p := by
         apply Finset.sum_congr rfl
         intro a ha
         have h := pos_sub_pos_neg (p a - q a)
-        convert h using 1 <;> ring
+        convert h using 1 <;> ring_nf
       _ = 0 := hzero
   linarith
 
@@ -86,7 +87,7 @@ lemma tv_eq_tvPos (p q : Dist α) : tv p q = tvPos p q := by
     apply Finset.sum_congr rfl
     intro a ha
     have h := abs_eq_pos_add_pos_neg (p a - q a)
-    convert h using 1 <;> ring
+    convert h using 1 <;> ring_nf
   rw [tv, habs, tvPos_symm p q]
   ring
 
@@ -96,7 +97,7 @@ lemma tv_nonneg (p q : Dist α) : 0 ≤ tv p q := by
 
 @[simp]
 lemma tv_self (p : Dist α) : tv p p = 0 := by
-  simp [tv, pos]
+  simp [tv]
 
 lemma tv_symm (p q : Dist α) : tv p q = tv q p := by
   simp only [tv_eq_tvPos]
@@ -138,12 +139,12 @@ theorem tv_push_same_weights_le (w : Dist ι) (P Q : Kernel ι α) :
       pos (push w P a - push w Q a) = pos (∑ i, w i * (P i a - Q i a)) := by
         simp only [push_apply]
         congr 1
-        rw [Finset.sum_sub_distrib]
+        rw [← Finset.sum_sub_distrib]
         apply Finset.sum_congr rfl
         intro i hi
         ring
       _ ≤ ∑ i, pos (w i * (P i a - Q i a)) := by
-        simpa only [Finset.sum_filter] using
+        simpa using
           pos_sum_le_sum_pos (Finset.univ : Finset ι) (fun i => w i * (P i a - Q i a))
       _ = ∑ i, w i * pos (P i a - Q i a) := by
         apply Finset.sum_congr rfl
