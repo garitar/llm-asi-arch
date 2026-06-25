@@ -1,0 +1,11 @@
+name = "tms2-cleanroom"
+version = "0.1.0"
+defaultTargets = ["TMS2Cleanroom"]
+
+[[lean_lib]]
+name = "TMS2Cleanroom"
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.31.0"
