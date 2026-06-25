@@ -16,17 +16,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Install pinned Lean toolchain
-        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9
-        with:
-          lake-package-directory: formalizations/tms2-cleanroom
-          auto-config: false
-          build: false
-          leanchecker: false
-          nanoda: false
-          use-github-cache: false
+      - name: Install elan and pinned Lean toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o elan-init.sh
+          sh elan-init.sh -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/elan" toolchain install "$(cat formalizations/tms2-cleanroom/lean-toolchain)"
       - name: Record toolchain
         working-directory: formalizations/tms2-cleanroom
+        shell: bash
         run: |
           set -euo pipefail
           lean --version
