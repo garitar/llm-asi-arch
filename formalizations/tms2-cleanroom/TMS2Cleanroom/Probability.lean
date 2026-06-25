@@ -22,7 +22,9 @@ instance : CoeFun (Dist α) (fun _ => α → ℝ) := ⟨Dist.mass⟩
 theorem ext {p q : Dist α} (h : ∀ a, p a = q a) : p = q := by
   cases p
   cases q
-  simp_all
+  simp only [Dist.mk.injEq]
+  funext a
+  exact h a
 
 /-- A finite Markov kernel. -/
 abbrev Kernel (α β : Type*) [Fintype β] := α → Dist β
@@ -46,14 +48,15 @@ theorem push_apply (p : Dist α) (K : Kernel α β) (b : β) :
     push p K b = ∑ a, p a * K a b := rfl
 
 /-- Deterministic maps are special Markov kernels. -/
-def deterministic (f : α → β) : Kernel α β := fun a =>
-  { mass := fun b => if f a = b then 1 else 0
-    nonneg := by
-      intro b
-      split <;> positivity
-    sum_mass := by
-      classical
-      simp }
+def deterministic (f : α → β) : Kernel α β := by
+  classical
+  intro a
+  exact
+    { mass := fun b => if f a = b then 1 else 0
+      nonneg := by
+        intro b
+        split <;> positivity
+      sum_mass := by simp }
 
 /-- Pushforward along a deterministic map. -/
 def map (f : α → β) (p : Dist α) : Dist β := push p (deterministic f)
