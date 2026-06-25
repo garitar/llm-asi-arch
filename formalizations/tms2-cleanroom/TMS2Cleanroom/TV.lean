@@ -52,8 +52,9 @@ lemma pos_sum_le_sum_pos (s : Finset ι) (f : ι → ℝ) :
   | empty => simp [pos]
   | @insert a s ha ih =>
       simp only [Finset.sum_insert ha]
-      exact (pos_add_le (f a) (∑ i ∈ s, f i)).trans
-        (add_le_add_left ih (pos (f a)))
+      have h' := add_le_add_left ih (pos (f a))
+      exact (pos_add_le (f a) (∑ i ∈ s, f i)).trans (by
+        simpa [add_comm] using h')
 
 /-- Total variation as positive mass of the signed difference. -/
 def tvPos (p q : Dist α) : ℝ := ∑ a, pos (p a - q a)
