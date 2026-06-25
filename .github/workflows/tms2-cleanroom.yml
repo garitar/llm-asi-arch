@@ -1,0 +1,34 @@
+name: TMS2 clean-room Lean
+
+on:
+  pull_request:
+    paths:
+      - "formalizations/tms2-cleanroom/**"
+      - ".github/workflows/tms2-cleanroom.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Build pinned clean-room package
+        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9
+        with:
+          lake-package-directory: formalizations/tms2-cleanroom
+          auto-config: false
+          build: true
+          leanchecker: true
+          nanoda: true
+          nanoda-allow-sorry: false
+          use-github-cache: false
+      - name: Record toolchain
+        working-directory: formalizations/tms2-cleanroom
+        run: |
+          set -euo pipefail
+          lean --version
+          lake --version
